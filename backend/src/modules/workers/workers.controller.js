@@ -79,6 +79,70 @@ const convertIdsToObjectId = async () => {
 };
 
 convertIdsToObjectId();
+
+// في ملف workers.controller.js
+export const getContractorsWithWorkerCountsByCompany = async (req, res) => {
+  try {
+    const { companyId } = req.params;
+    const contractors = await Contractor.find({ company_id: companyId });
+    const workers = await Worker.find({ company_id: companyId });
+
+    const contractorsWithCounts = contractors.map((contractor) => {
+      const contractorWorkers = workers.filter(
+        (worker) =>
+          worker.contractor_id.toString() === contractor._id.toString()
+      );
+
+      return {
+        ...contractor.toObject(),
+        totalWorkers: contractorWorkers.length,
+        saudiWorkers: contractorWorkers.filter(
+          (worker) => worker.nationality === "Saudi"
+        ).length,
+        nonSaudiWorkers: contractorWorkers.filter(
+          (worker) => worker.nationality === "Non-Saudi"
+        ).length,
+        wprWorkers: contractorWorkers.filter(
+          (worker) => worker.job_title === "WPR"
+        ).length,
+        supervisorWorkers: contractorWorkers.filter(
+          (worker) => worker.job_title === "Supervisor"
+        ).length,
+        safetyOfficerWorkers: contractorWorkers.filter(
+          (worker) => worker.job_title === "Safety Officer"
+        ).length,
+        helperWorkers: contractorWorkers.filter(
+          (worker) => worker.job_title === "Helper"
+        ).length,
+        hvacWorkers: contractorWorkers.filter(
+          (worker) => worker.job_title === "HVAC"
+        ).length,
+        electWorkers: contractorWorkers.filter(
+          (worker) => worker.job_title === "Elect"
+        ).length,
+        pcstWorkers: contractorWorkers.filter(
+          (worker) => worker.job_title === "PCST"
+        ).length,
+        welderWorkers: contractorWorkers.filter(
+          (worker) => worker.job_title === "Welder"
+        ).length,
+        fabricatorWorkers: contractorWorkers.filter(
+          (worker) => worker.job_title === "Fabricator"
+        ).length,
+        metalWorkers: contractorWorkers.filter(
+          (worker) => worker.job_title === "Metal"
+        ).length,
+        machinistWorkers: contractorWorkers.filter(
+          (worker) => worker.job_title === "Machinist"
+        ).length,
+      };
+    });
+
+    res.status(200).json(contractorsWithCounts);
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred", error });
+  }
+};
 // إنشاء عامل جديد
 export const createWorker = async (req, res, next) => {
   try {

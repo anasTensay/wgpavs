@@ -48,7 +48,7 @@ const projectSchema = new mongoose.Schema(
     }, // الموقع المعين
     company_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Company",
+      ref: "Comown",
       required: true,
     }, // معرف الشركة
     contractor_id: {
@@ -61,6 +61,7 @@ const projectSchema = new mongoose.Schema(
       type: String,
       enum: ["FAI", "NEAR-MISS", "Observation", "Incident"],
     }, // نوع السلامة
+    contractorWillWorkNextWeek: { type: Boolean, default: false }, // حقل جديد لتحديد ما إذا كان المقاول سيعمل الأسبوع القادم
     occurredOn: { type: Date }, // تاريخ الحدث
     description: { type: String }, // وصف الحدث
     statusOfs: {

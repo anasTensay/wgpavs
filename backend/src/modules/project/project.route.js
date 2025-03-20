@@ -13,5 +13,5 @@ router.get("/safety-report", projectController.getSafetyReport); // جلب تق�
 router.get("/contractor-counts", projectController.getContractorsWithProjectCounts); // جلب المقاولين مع عدد المشاريع
 router.get("/project-counts", projectController.getContractorsWithProjectCounts);
 router.get("/:projectId/safety-stats", projectController.getSafetyStats);
-
+router.get("/company/:companyId", projectController.getProjectsByCompanyId);
 export default router;

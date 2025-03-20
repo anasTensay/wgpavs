@@ -66,7 +66,7 @@ export const loginHandler = async (req, res, next) => {
 export const getComowns = async (req, res, next) => {
   try {
     const comowns = await Comown.find();
-    res.json(comowns);
+    res.status(200).json(comowns);
   } catch (error) {
     next(error);
   }

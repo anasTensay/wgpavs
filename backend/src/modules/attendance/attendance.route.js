@@ -5,6 +5,7 @@ import {
   deleteAttendance,
   getAttendance,
   getAttendanceById,
+  getAllAttendanceRecords,
 } from "./attendance.controller.js";
 
 const router = express.Router();
@@ -24,6 +25,7 @@ router.post("/", convertAttendanceData, createAttendance);
 router.post("/", createAttendance);
 router.put("/:id", updateAttendance);
 router.delete("/:id", deleteAttendance);
+router.get("/records", getAllAttendanceRecords);  // Add this new route
 router.get("/", getAttendance);
 router.get("/:id", getAttendanceById);
 

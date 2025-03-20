@@ -121,3 +121,16 @@ export const getAttendanceById = async (req, res, next) => {
     next(error);
   }
 };
+
+// Add this new method to your attendance.controller.js file
+export const getAllAttendanceRecords = async (req, res, next) => {
+  try {
+    const attendanceRecords = await Attendance.find()
+      .populate('worker_id', 'id name contact_info')
+      .populate('project_id', 'name');
+      
+    res.status(200).json(attendanceRecords);
+  } catch (error) {
+    next(error);
+  }
+};

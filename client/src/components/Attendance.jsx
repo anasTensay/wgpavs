@@ -8,8 +8,9 @@ import AttendanceTable from "./AttendanceTable";
 const Attendance = () => {
   const [workers, setWorkers] = useState([]); // Workers list
   const [projects, setProjects] = useState([]); // Projects list
+  const [attendanceRecords, setAttendanceRecords] = useState([]); // Add state for attendance records
   const [formData, setFormData] = useState({
-    worker_id: "",  
+    worker_id: "",
     project_id: "",
     date: "",
     status: "Present",
@@ -20,6 +21,7 @@ const Attendance = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
   // Function to fetch data
   const fetchData = async (endpoint) => {
     try {
@@ -34,6 +36,12 @@ const Attendance = () => {
     }
   };
 
+  // Fetch attendance records
+  const fetchAttendance = async () => {
+    // Use the new endpoint for detailed records instead of the summary
+    const data = await fetchData("/api/attendance/records");
+    if (data) setAttendanceRecords(data);
+  };
 
   // Fetch workers list
   const fetchWorkers = async () => {
@@ -50,11 +58,13 @@ const Attendance = () => {
   useEffect(() => {
     fetchWorkers();
     fetchProjects();
+    fetchAttendance(); // Also fetch attendance records on component mount
   }, []);
 
   // Register new attendance
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await fetch(`${apiUrl}/api/attendance`, {
         method: "POST",
@@ -65,7 +75,7 @@ const Attendance = () => {
       const data = await res.json();
       if (res.ok) {
         toast.success("Attendance recorded successfully");
-        fetchAttendance();
+        fetchAttendance(); // Refresh the attendance data
         setFormData({
           worker_id: "",
           project_id: "",
@@ -81,6 +91,8 @@ const Attendance = () => {
     } catch (error) {
       setError(error.message);
       toast.error(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,14 +104,14 @@ const Attendance = () => {
         ...formData,
         worker_id: workerId,
         worker_name: selectedWorker.name,
-        nationality: selectedWorker.nationality,
-        job_title: selectedWorker.job_title,
+        nationality: selectedWorker.nationality || "Saudi",
+        job_title: selectedWorker.job_title || "",
       });
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
+  if (loading && !attendanceRecords.length) {
+    return <div className="p-6 text-center">Loading...</div>;
   }
 
   return (
@@ -170,6 +182,7 @@ const Attendance = () => {
             placeholder="Worker Name"
             className="p-2 border rounded"
             required
+            readOnly
           />
           <select
             value={formData.nationality}
@@ -177,6 +190,7 @@ const Attendance = () => {
               setFormData({ ...formData, nationality: e.target.value })
             }
             className="p-2 border rounded"
+            disabled
           >
             <option value="Saudi">Saudi</option>
             <option value="Non-Saudi">Non-Saudi</option>
@@ -195,11 +209,14 @@ const Attendance = () => {
         <button
           type="submit"
           className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+          disabled={loading}
         >
-          Register
+          {loading ? "Submitting..." : "Register"}
         </button>
       </form>
-      <AttendanceTable/>
+
+      {/* Pass attendance data to the AttendanceTable component */}
+      <AttendanceTable records={attendanceRecords} refreshData={fetchAttendance} />
     </div>
   );
 };

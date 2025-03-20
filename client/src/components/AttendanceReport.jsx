@@ -48,10 +48,12 @@ const AttendanceReport = ({ apiUrl }) => {
           <tbody>
             {attendanceData.map((report) => (
               <tr key={report._id} className="border-b hover:bg-gray-50">
-                <td className="p-3">{report.project_name}</td>
-                <td className="p-3">{new Date(report.date).toLocaleDateString()}</td>
-                <td className="p-3">{report.attendance_count}</td>
-                <td className="p-3">{report.absence_count}</td>
+                <td className="p-3">{report.project_name || "N/A"}</td>
+                <td className="p-3">
+                  {report.date ? new Date(report.date).toLocaleDateString() : "N/A"}
+                </td>
+                <td className="p-3">{report.attendance_count || "N/A"}</td>
+                <td className="p-3">{report.absence_count || "N/A"}</td>
               </tr>
             ))}
           </tbody>

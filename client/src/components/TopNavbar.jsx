@@ -15,7 +15,7 @@ const TopNavbar = ({ onMenuClick }) => {
       </button>
       <div className="flex items-center gap-5">
         <h1>{currentUser.name}</h1>
-        <img src={currentUser.profilePicture} className="w-10 h-10 rounded-full"/>
+        <img src={currentUser.profilePicture} alt="img" className="w-10 h-10 rounded-full"/>
       </div>
     </header>
   );

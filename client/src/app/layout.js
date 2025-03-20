@@ -1,5 +1,4 @@
-// src/app/layout.js
-"use client"; // تأكد من أن هذا الملف يعمل على جانب العميل
+"use client"; 
 
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";

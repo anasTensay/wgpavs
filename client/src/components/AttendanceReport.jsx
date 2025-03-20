@@ -1,7 +1,37 @@
-// AttendanceReport.js
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const AttendanceReport = ({ apiUrl }) => {
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchAttendanceData = async () => {
+      try {
+        const response = await fetch(`${apiUrl}/api/attendance`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch attendance data");
+        }
+        const data = await response.json();
+        setAttendanceData(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAttendanceData();
+  }, [apiUrl]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-md mb-6">
       <h2 className="text-xl font-semibold mb-4">Attendance Report</h2>
@@ -16,7 +46,14 @@ const AttendanceReport = ({ apiUrl }) => {
             </tr>
           </thead>
           <tbody>
-            {/* سيتم ملء البيانات هنا */}
+            {attendanceData.map((report) => (
+              <tr key={report._id} className="border-b hover:bg-gray-50">
+                <td className="p-3">{report.project_name}</td>
+                <td className="p-3">{new Date(report.date).toLocaleDateString()}</td>
+                <td className="p-3">{report.attendance_count}</td>
+                <td className="p-3">{report.absence_count}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

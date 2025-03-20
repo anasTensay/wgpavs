@@ -174,7 +174,7 @@ const ReportsPage = () => {
                 <th className="border p-3 text-left">End Date</th>
                 <th className="border p-3 text-left">Status</th>
                 <th className="border p-3 text-left">Location</th>
-                <th className="border p-3 text-left">Assigned Location</th>
+                <th className="border p-3 text-left">End User</th>
                 <th className="border p-3 text-left">Company ID</th>
                 <th className="border p-3 text-left">Contractor Name</th>
                 <th className="border p-3 text-left">Notes</th>

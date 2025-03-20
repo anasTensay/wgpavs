@@ -9,12 +9,27 @@ const AddPayment = ({ onAdd }) => {
   const [paymentDate, setPaymentDate] = useState("");
   const [projectId, setProjectId] = useState("");
   const [remarks, setRemarks] = useState("");
+  const [totalAmount, setTotalAmount] = useState(0);
   const { currentUser } = useSelector((state) => state.user);
 
   // Automatically set contractor_id if the user is a contractor
   const contractorId = currentUser?.isContractor ? currentUser._id : "";
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+  useEffect(() => {
+    if (projectId) {
+      fetch(`${apiUrl}/api/payments?project_id=${projectId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          const total = data.reduce((sum, payment) => sum + payment.amount, 0);
+          setTotalAmount(total);
+        })
+        .catch((error) => {
+          console.error("Error fetching payments:", error);
+        });
+    }
+  }, [projectId]);
 
   useEffect(() => {
     fetchProjects();
@@ -62,6 +77,21 @@ const AddPayment = ({ onAdd }) => {
       return;
     }
 
+    // التحقق من أن المجموع لا يتجاوز 100%
+    try {
+      const res = await fetch(`${apiUrl}/api/payments?project_id=${projectId}`);
+      const data = await res.json();
+      const totalAmount = data.reduce((sum, payment) => sum + payment.amount, 0);
+      if (totalAmount + amount > 100) {
+        alert("Total payment amount cannot exceed 100%");
+        return;
+      }
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      alert("An error occurred while validating the payment amount");
+      return;
+    }
+
     try {
       const res = await fetch(`${apiUrl}/api/payments/create`, {
         method: "POST",
@@ -71,7 +101,7 @@ const AddPayment = ({ onAdd }) => {
           payment_status: paymentStatus,
           payment_date: paymentDate,
           project_id: projectId,
-          contractor_id: contractorId, // Automatically set contractor_id
+          contractor_id: contractorId,
           remarks,
         }),
       });
@@ -93,7 +123,6 @@ const AddPayment = ({ onAdd }) => {
       alert("An error occurred. Please try again.");
     }
   };
-
   // Handle project selection change
   const handleProjectChange = (e) => {
     const selectedProjectId = e.target.value;
@@ -142,6 +171,16 @@ const AddPayment = ({ onAdd }) => {
         </div>
       )}
 
+      <div className="mb-4">
+        <label className="block text-gray-700 mb-2">Total Amount:</label>
+        <input
+          type="text"
+          value={`${totalAmount}%`}
+          readOnly
+          className="block w-full p-2 border border-gray-300 rounded"
+        />
+      </div>
+
       {/* Amount field (must not exceed 100%) */}
       <div className="mb-4">
         <label className="block text-gray-700 mb-2">Amount (%):</label>
@@ -152,7 +191,7 @@ const AddPayment = ({ onAdd }) => {
           placeholder="Enter amount in percentage"
           className="block w-full p-2 border border-gray-300 rounded"
           min="0"
-          max="100"
+          max={100 - totalAmount}
           required
         />
       </div>

@@ -9,7 +9,7 @@ const Attendance = () => {
   const [workers, setWorkers] = useState([]); // Workers list
   const [projects, setProjects] = useState([]); // Projects list
   const [formData, setFormData] = useState({
-    worker_id: "",
+    worker_id: "",  
     project_id: "",
     date: "",
     status: "Present",

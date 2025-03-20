@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { Line, Bar } from "react-chartjs-2";
 import { Chart, registerables } from "chart.js";
 import { useQuery } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
 
 Chart.register(...registerables);
 
@@ -23,7 +24,8 @@ const fetchData = async (endpoint) => {
 
 const ContractorDashboard = () => {
   const [activeTab, setActiveTab] = useState("workforce");
-
+  const { currentUser } = useSelector((state) => state.user);
+  const selectedCompany = currentUser?._id
   // Query configurations
   const {
     data: contractors = [],
@@ -42,15 +44,16 @@ const ContractorDashboard = () => {
     queryKey: ["workers"],
     queryFn: () => fetchData("/api/workers"),
   });
-
   const {
-    data: projects,
+    data: projects = [],
     isLoading: projectsLoading,
     isError: projectsError,
   } = useQuery({
-    queryKey: ["projects"],
-    queryFn: () => fetchData("/api/projects"),
+    queryKey: ["projects", selectedCompany],
+    queryFn: () => fetchData(`/api/projects/company/${selectedCompany}`),
+    enabled: !!selectedCompany, // Only fetch data if a company is selected
   });
+
 
   const {
     data: dailyReports = [],

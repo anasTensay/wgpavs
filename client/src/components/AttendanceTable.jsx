@@ -17,7 +17,9 @@ const AttendanceTable = () => {
         throw new Error("Network response was not ok");
       }
       const data = await res.json();
-      setAttendance(data);
+
+      // Ensure data is an array before storing
+      setAttendance(Array.isArray(data) ? data : []);
     } catch (error) {
       setError(error.message);
       toast.error("An error occurred while fetching data");
@@ -40,25 +42,48 @@ const AttendanceTable = () => {
         <table className="w-full border-collapse border border-gray-200">
           <thead className="bg-gray-100">
             <tr>
+              <th className="border p-3 text-left">Worker ID</th>
               <th className="border p-3 text-left">Worker Name</th>
               <th className="border p-3 text-left">Nationality</th>
               <th className="border p-3 text-left">Job Title</th>
               <th className="border p-3 text-left">Project</th>
               <th className="border p-3 text-left">Date</th>
               <th className="border p-3 text-left">Status</th>
+              <th className="border p-3 text-left">Contact Info</th>
               <th className="border p-3 text-left">Created At</th>
             </tr>
           </thead>
           <tbody>
             {attendance.map((record) => (
               <tr key={record._id} className="hover:bg-gray-50">
-                <td className="border p-3">{record.worker_name || "N/A"}</td>
+                <td className="border p-3">
+                  {/* Handle worker_id which might be an object or string */}
+                  {typeof record.worker_id === "object" && record.worker_id?.id
+                    ? record.worker_id.id
+                    : record.worker_id || "N/A"}
+                </td>
+                <td className="border p-3">{record.worker_name || record.name || "N/A"}</td>
                 <td className="border p-3">{record.nationality || "N/A"}</td>
                 <td className="border p-3">{record.job_title || "N/A"}</td>
-                <td className="border p-3">{record.project_id?.name || "N/A"}</td>
-                <td className="border p-3">{new Date(record.date).toLocaleDateString()}</td>
-                <td className="border p-3">{record.status}</td>
-                <td className="border p-3">{new Date(record.createdAt).toLocaleString()}</td>
+                <td className="border p-3">
+                  {typeof record.project_id === "object" && record.project_id?.name
+                    ? record.project_id.name
+                    : "N/A"}
+                </td>
+                <td className="border p-3">
+                  {record.date ? new Date(record.date).toLocaleDateString() : "N/A"}
+                </td>
+                <td className="border p-3">{record.status || "N/A"}</td>
+                <td className="border p-3">
+                  {typeof record.contact_info === "object"
+                    ? JSON.stringify(record.contact_info)
+                    : typeof record.worker_id === "object" && record.worker_id?.contact_info
+                    ? JSON.stringify(record.worker_id.contact_info)
+                    : "N/A"}
+                </td>
+                <td className="border p-3">
+                  {record.createdAt ? new Date(record.createdAt).toLocaleString() : "N/A"}
+                </td>
               </tr>
             ))}
           </tbody>

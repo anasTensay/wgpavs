@@ -13,18 +13,17 @@ const PaymentList = () => {
   const [editPaymentDate, setEditPaymentDate] = useState("");
   const [editProjectId, setEditProjectId] = useState("");
   const [editContractorId, setEditContractorId] = useState("");
-  const [projects, setProjects] = useState([]); // State to store projects
-  const [contractors, setContractors] = useState([]); // State to store contractors
+  const [projects, setProjects] = useState([]);
+  const [contractors, setContractors] = useState([]);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     fetchPayments();
-    fetchProjects(); // Fetch projects when the component mounts
-    fetchContractors(); // Fetch contractors when the component mounts
+    fetchProjects();
+    fetchContractors();
   }, []);
 
-  // Fetch the list of payments from the backend
   const fetchPayments = async () => {
     try {
       const res = await fetch(`${apiUrl}/api/payments`);
@@ -37,7 +36,6 @@ const PaymentList = () => {
     }
   };
 
-  // Fetch the list of projects from the backend
   const fetchProjects = async () => {
     try {
       const res = await fetch(`${apiUrl}/api/projects`);
@@ -50,7 +48,6 @@ const PaymentList = () => {
     }
   };
 
-  // Fetch the list of contractors from the backend
   const fetchContractors = async () => {
     try {
       const res = await fetch(`${apiUrl}/api/contractors`);
@@ -63,7 +60,6 @@ const PaymentList = () => {
     }
   };
 
-  // Update payments
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
@@ -91,8 +87,12 @@ const PaymentList = () => {
     }
   };
 
-  // Delete payments
   const handleDeleteConfirm = async () => {
+    if (!selectedPayment) {
+      console.error("No payment selected for deletion");
+      return;
+    }
+
     try {
       const res = await fetch(`${apiUrl}/api/payments/${selectedPayment._id}`, {
         method: "DELETE",
@@ -109,7 +109,6 @@ const PaymentList = () => {
     }
   };
 
-  // Open the edit popup
   const handleEditClick = (payment) => {
     setSelectedPayment(payment);
     setEditAmount(payment.amount);
@@ -120,17 +119,14 @@ const PaymentList = () => {
     setShowEditPopup(true);
   };
 
-  // Handle project selection change
   const handleProjectChange = (e) => {
     const selectedProjectId = e.target.value;
     setEditProjectId(selectedProjectId);
 
-    // Find the selected project
     const selectedProject = projects.find(
       (project) => project._id === selectedProjectId
     );
 
-    // Set the contractor ID based on the selected project
     if (selectedProject) {
       setEditContractorId(selectedProject.contractor_id);
     }
@@ -141,12 +137,10 @@ const PaymentList = () => {
       <h2 className="text-3xl font-bold mb-8 text-center">
         Payment Management
       </h2>
-      {/* Add payment form */}
       <div className="mb-8">
         <AddPayment onAdd={fetchPayments} />
       </div>
 
-      {/* Display the list of payments */}
       <div className="bg-white shadow-lg rounded-lg p-6 overflow-x-auto">
         <table className="w-full border-collapse border border-gray-200">
           <thead className="bg-gray-100">
@@ -184,7 +178,10 @@ const PaymentList = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => setShowDeletePopup(true)}
+                      onClick={() => {
+                        setSelectedPayment(payment);
+                        setShowDeletePopup(true);
+                      }}
                       className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
                     >
                       Delete
@@ -197,7 +194,6 @@ const PaymentList = () => {
         </table>
       </div>
 
-      {/* Edit payment popup */}
       {showEditPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-96">
@@ -285,7 +281,6 @@ const PaymentList = () => {
         </div>
       )}
 
-      {/* Delete confirmation popup */}
       {showDeletePopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-96">
@@ -298,7 +293,10 @@ const PaymentList = () => {
             </p>
             <div className="flex justify-end space-x-3">
               <button
-                onClick={() => setShowDeletePopup(false)}
+                onClick={() => {
+                  setShowDeletePopup(false);
+                  setSelectedPayment(null);
+                }}
                 className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition"
               >
                 Cancel

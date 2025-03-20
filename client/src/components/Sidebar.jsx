@@ -10,18 +10,10 @@ import {
   FaClipboardCheck,
   FaTimes,
   FaBuilding,
-  FaUserCog,
-  FaUser,
   FaPlus,
   FaChartLine,
   FaCog,
-  FaFileContract,
   FaHardHat,
-  FaTools,
-  FaCalendarAlt,
-  FaBell,
-  FaEnvelope,
-  FaSearch,
 } from "react-icons/fa";
 
 const Sidebar = ({ showNav, onClose }) => {
@@ -219,31 +211,7 @@ const Sidebar = ({ showNav, onClose }) => {
           </Link>
         )}
 
-        {(isAdmin || isOwnerAd || isContractor) && (
-          <Link
-            href="/contracts"
-            className="flex items-center justify-between gap-5 p-2 rounded hover:bg-indigo-700 transition-colors duration-200"
-          >
-            <div className="flex">
-              <FaFileContract className="mr-3 text-lg" />
-              <span>Contracts</span>
-            </div>
-            <FaPlus />
-          </Link>
-        )}
 
-        {(isAdmin || isOwnerAd || isContractor) && (
-          <Link
-            href="/notifications"
-            className="flex items-center justify-between gap-5 p-2 rounded hover:bg-indigo-700 transition-colors duration-200"
-          >
-            <div className="flex">
-              <FaBell className="mr-3 text-lg" />
-              <span>Notifications</span>
-            </div>
-            <FaPlus />
-          </Link>
-        )}
       </nav>
     </aside>
   );

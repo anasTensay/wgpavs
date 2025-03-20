@@ -1,27 +1,36 @@
-"use client"
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { FaEdit } from "react-icons/fa";
+import { FaEdit, FaFilter } from "react-icons/fa";
 import { useSelector } from "react-redux";
 
 const AdminContractor = () => {
   const [projects, setProjects] = useState([]);
+  const [comowns, setComowns] = useState([]);
   const [showEditPopup, setShowEditPopup] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [editStatus, setEditStatus] = useState("");
   const [editProgressStatus, setEditProgressStatus] = useState("");
   const [editPaidPercentage, setEditPaidPercentage] = useState(0);
   const [editRemarks, setEditRemarks] = useState("");
+  const [upcomingProjects, setUpcomingProjects] = useState([]);
   const { currentUser } = useSelector((state) => state.user);
   const contractorId = currentUser?._id;
+
+  const [filters, setFilters] = useState({
+    startDate: "",
+    endDate: "",
+    companyId: "",
+  });
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (contractorId) {
       fetchProjects();
+      fetchComowns();
     }
   }, [contractorId]);
 
@@ -30,8 +39,14 @@ const AdminContractor = () => {
       const res = await fetch(`${apiUrl}/api/projects/contractor/${contractorId}`);
       const data = await res.json();
       if (res.ok) {
-        setProjects(data);
-        console.log("Fetched Projects:", data); // Check the returned data
+        const updatedProjects = data.map((project) => ({
+          ...project,
+          contractorWillWorkNextWeek: project.contractorWillWorkNextWeek || false,
+          schstartDate: project.schstartDate || "N/A",
+          schendDate: project.schendDate || "N/A",
+        }));
+        setProjects(updatedProjects);
+        setUpcomingProjects(getUpcomingWeekProjects(updatedProjects));
       } else {
         toast.error("Failed to fetch projects");
       }
@@ -39,6 +54,52 @@ const AdminContractor = () => {
       console.error("Error fetching projects:", error);
       toast.error("An error occurred while fetching projects");
     }
+  };
+
+  const fetchComowns = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/api/authComown`);
+      const data = await res.json();
+      if (res.ok) {
+        setComowns(data);
+      } else {
+        toast.error("Failed to fetch comowns");
+      }
+    } catch (error) {
+      console.error("Error fetching comowns:", error);
+      toast.error("An error occurred while fetching comowns");
+    }
+  };
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters({
+      ...filters,
+      [name]: value,
+    });
+  };
+
+  const applyFilters = () => {
+    const filteredProjects = projects.filter((project) => {
+      const matchesStartDate = filters.startDate
+        ? new Date(project.schstartDate) >= new Date(filters.startDate)
+        : true;
+      const matchesEndDate = filters.endDate
+        ? new Date(project.schendDate) <= new Date(filters.endDate)
+        : true;
+      const matchesCompany = filters.companyId
+        ? project.company_id === filters.companyId
+        : true;
+
+      return matchesStartDate && matchesEndDate && matchesCompany;
+    });
+
+    setProjects(filteredProjects);
+  };
+
+  const getComownName = (comownId) => {
+    const comown = comowns.find((comown) => comown._id === comownId);
+    return comown ? comown.name : "N/A";
   };
 
   const handleUpdate = async (e) => {
@@ -79,27 +140,28 @@ const AdminContractor = () => {
     setShowEditPopup(true);
   };
 
-  // Filter projects for the upcoming week
-  const getUpcomingWeekProjects = () => {
+  const getUpcomingWeekProjects = (projects) => {
     const today = new Date();
     const oneWeekLater = new Date();
     oneWeekLater.setDate(today.getDate() + 7);
 
-    return projects.filter((project) => {
-      const startDate = new Date(project.start_date);
-      const endDate = new Date(project.end_date);
+    return projects.map((project) => {
+      const startDate = new Date(project.schstartDate);
+      const endDate = new Date(project.schendDate);
 
-      // Check if the start or end date falls within the upcoming week
-      return (
-        (startDate >= today && startDate <= oneWeekLater) || // Starts within the upcoming week
-        (endDate >= today && endDate <= oneWeekLater) || // Ends within the upcoming week
-        (startDate <= today && endDate >= oneWeekLater) // Spans the upcoming week
-      );
+      const isUpcoming =
+        (startDate >= today && startDate <= oneWeekLater) ||
+        (endDate >= today && endDate <= oneWeekLater) ||
+        (startDate <= today && endDate >= oneWeekLater);
+
+      return {
+        ...project,
+        contractorWillWorkNextWeek: project.contractorWillWorkNextWeek ? "نعم" : "لا",
+        isUpcoming: isUpcoming ? "نعم" : "لا",
+      };
     });
   };
-  const upcomingProjects = getUpcomingWeekProjects();
 
-  // Function to format date as DD/MM/YYYY
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
@@ -112,10 +174,62 @@ const AdminContractor = () => {
         Contractor Dashboard
       </h1>
 
+      {/* Filter Section */}
+      <div className="bg-white shadow-lg rounded-lg p-6 mb-8">
+        <h3 className="text-xl font-semibold mb-4">Filter Data</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-gray-700">Start Date</label>
+            <input
+              type="date"
+              name="startDate"
+              value={filters.startDate}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700">End Date</label>
+            <input
+              type="date"
+              name="endDate"
+              value={filters.endDate}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+            />
+          </div>
+          <div>
+            <label className="block text-gray-700">Company</label>
+            <select
+              name="companyId"
+              value={filters.companyId}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+            >
+              <option value="">Select Company</option>
+              {comowns.map((comown) => (
+                <option key={comown._id} value={comown._id}>
+                  {comown.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <button
+          onClick={applyFilters}
+          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition"
+        >
+          <FaFilter className="inline-block mr-2" />
+          Apply Filters
+        </button>
+      </div>
+
+      {/* Projects Table */}
       <div className="bg-white shadow-lg rounded-lg p-6 overflow-x-auto mb-8">
         <table className="w-full border-collapse border border-gray-200">
           <thead className="bg-gray-100">
             <tr>
+              <th className="border p-3 text-left">Company</th>
               <th className="border p-3 text-left">Project ID</th>
               <th className="border p-3 text-left">Project Name</th>
               <th className="border p-3 text-left">Location</th>
@@ -130,6 +244,7 @@ const AdminContractor = () => {
           <tbody>
             {projects.map((project) => (
               <tr key={project._id} className="hover:bg-gray-50">
+                <td className="border p-3">{getComownName(project.company_id)}</td>
                 <td className="border p-3">{project.project_number}</td>
                 <td className="border p-3">{project.name}</td>
                 <td className="border p-3">{project.location}</td>
@@ -163,6 +278,8 @@ const AdminContractor = () => {
               <th className="border p-3 text-left">Project Name</th>
               <th className="border p-3 text-left">Start Date</th>
               <th className="border p-3 text-left">End Date</th>
+              <th className="border p-3 text-left">Will Work Next Week</th>
+              <th className="border p-3 text-left">Upcoming Week Schedule</th>
             </tr>
           </thead>
           <tbody>
@@ -170,13 +287,15 @@ const AdminContractor = () => {
               upcomingProjects.map((project) => (
                 <tr key={project._id} className="hover:bg-gray-50">
                   <td className="border p-3">{project.name}</td>
-                  <td className="border p-3">{formatDate(project.start_date)}</td>
-                  <td className="border p-3">{formatDate(project.end_date)}</td>
+                  <td className="border p-3">{formatDate(project.schstartDate)}</td>
+                  <td className="border p-3">{formatDate(project.schendDate)}</td>
+                  <td className="border p-3">{project.contractorWillWorkNextWeek}</td>
+                  <td className="border p-3">{project.isUpcoming}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="3" className="border p-3 text-center">
+                <td colSpan="5" className="border p-3 text-center">
                   No projects for the upcoming week
                 </td>
               </tr>

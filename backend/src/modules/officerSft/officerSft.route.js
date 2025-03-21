@@ -12,6 +12,7 @@ router.post(
 );
 router.post("/login", validateZod(loginShcema), officerSftController.loginHandler);
 router.get("/", officerSftController.getHandler);
+router.get("/:companyId", officerSftController.getCompanyOfficer);
 router.put("/:id", officerSftController.updateHandler);
 router.delete("/:id", officerSftController.deleteHandler);
 

@@ -11,10 +11,10 @@ router.post(
   authContractorController.registerHandler
 );
 router.post("/login", validateZod(loginShcema), authContractorController.loginHandler);
+router.get("/:companyId", authContractorController.getCompanyContractor);
 router.get("/", authContractorController.getHandler);
 router.get("/projects", authContractorController.getProjects);
 router.put("/:id", authContractorController.updateHandler);
-router.delete("/:id", authContractorController.deleteHandler);
 router.delete("/:id", authContractorController.deleteHandler);
 
 export default router;

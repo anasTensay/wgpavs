@@ -14,5 +14,6 @@ router.post("/login", validateZod(loginShcema), authComownController.loginHandle
 router.get("/", authComownController.getComowns);
 router.put("/:id", authComownController.updateComown);
 router.delete("/:id", authComownController.deleteComown);
+router.get("/:companyId", authComownController.getCompanyInfo);
 
 export default router;

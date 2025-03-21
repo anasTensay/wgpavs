@@ -3,15 +3,19 @@ import mongoose from "mongoose";
 // تعريف مخطط المشروع
 const projectSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true }, // اسم المشروع
-    project_number: { type: String, required: true, unique: true }, // رقم المشروع (فريد)
-    start_date: { type: Date, required: true }, // تاريخ البدء
-    end_date: { type: Date, required: true }, // تاريخ الانتهاء
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comown",
+    },
+    name: { type: String, required: true },
+    project_number: { type: String, required: true, unique: true },
+    start_date: { type: Date, required: true },
+    end_date: { type: Date, required: true },
     status: {
       type: String,
       enum: ["Active", "Expired", "Completed"],
       default: "Active",
-    }, // حالة المشروع
+    },
     location: {
       type: String,
       enum: [
@@ -26,7 +30,7 @@ const projectSchema = new mongoose.Schema(
         "Handlling",
       ],
       required: true,
-    }, // الموقع
+    },
     assigned_location: {
       type: String,
       enum: [
@@ -45,41 +49,36 @@ const projectSchema = new mongoose.Schema(
         "HVAC",
       ],
       required: true,
-    }, // الموقع المعين
-    company_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Comown",
-      required: true,
-    }, // معرف الشركة
+    },
     contractor_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Contractor",
       required: true,
-    }, // معرف المقاول
-    notes: { type: String }, // ملاحظات عامة
+    },
+    notes: { type: String },
     safetyType: {
       type: String,
       enum: ["FAI", "NEAR-MISS", "Observation", "Incident"],
-    }, // نوع السلامة
-    contractorWillWorkNextWeek: { type: Boolean, default: false }, // حقل جديد لتحديد ما إذا كان المقاول سيعمل الأسبوع القادم
-    occurredOn: { type: Date }, // تاريخ الحدث
-    description: { type: String }, // وصف الحدث
+    },
+    contractorWillWorkNextWeek: { type: Boolean, default: false },
+    occurredOn: { type: Date },
+    description: { type: String },
     statusOfs: {
       type: String,
       enum: ["open", "closed", "under-investigation"],
-    }, // حالة الحدث
-    ytdFAI: { type: Number, default: 0 }, // YTD FAI
-    ofFAINotCompleted: { type: Number, default: 0 }, // OF FAI Not Completed
-    ytdObservation: { type: Number, default: 0 }, // YTD Observation
-    ofObservationNotCompleted: { type: Number, default: 0 }, // OF Observation Not Completed
-    ytdIncident: { type: Number, default: 0 }, // YTD Incident
-    ofIncidentNotCompleted: { type: Number, default: 0 }, // OF Incident Not Completed
-    totalNotClosed: { type: Number, default: 0 }, // إجمالي غير المكتمل
-    schstartDate: { type: Date }, // تاريخ البدء المخطط
-    schendDate: { type: Date }, // تاريخ الانتهاء المخطط
-    remarks: { type: String }, // ملاحظات
+    },
+    ytdFAI: { type: Number, default: 0 },
+    ofFAINotCompleted: { type: Number, default: 0 },
+    ytdObservation: { type: Number, default: 0 },
+    ofObservationNotCompleted: { type: Number, default: 0 },
+    ytdIncident: { type: Number, default: 0 },
+    ofIncidentNotCompleted: { type: Number, default: 0 },
+    totalNotClosed: { type: Number, default: 0 },
+    schstartDate: { type: Date },
+    schendDate: { type: Date },
+    remarks: { type: String },
   },
-  { timestamps: true } // إضافة الطوابع الزمنية
+  { timestamps: true }
 );
 
 // تصدير نموذج المشروع

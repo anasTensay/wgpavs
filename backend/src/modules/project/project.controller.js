@@ -96,11 +96,11 @@ export const createHandler = async (req, res, next) => {
       end_date,
       location,
       assigned_location,
-      company_id,
+      companyId,
       contractor_id,
       status,
       notes,
-      contractorWillWorkNextWeek, // الحقل الجديد
+      contractorWillWorkNextWeek,
     } = req.body;
 
     const newProject = new Project({
@@ -110,11 +110,11 @@ export const createHandler = async (req, res, next) => {
       end_date,
       location,
       assigned_location,
-      company_id,
+      companyId,
       contractor_id,
       status,
       notes,
-      contractorWillWorkNextWeek, // حفظ الحقل الجديد
+      contractorWillWorkNextWeek,
     });
 
     await newProject.save();
@@ -154,8 +154,11 @@ export const deleteHandler = async (req, res, next) => {
 // جلب جميع المشاريع
 export const getHandler = async (req, res, next) => {
   try {
-    const projects = await Project.find().populate("company_id", "name");
-    res.json(projects);
+    const projects = await Project.find().populate("companyId", "name");
+    if (!projects) {
+      return res.status(404).json({ message: "No projects found" });
+    }
+    res.status(200).json(projects);
   } catch (error) {
     next(error);
   }
@@ -174,13 +177,15 @@ export const getProjectsByContractorId = async (req, res, next) => {
 export const getProjectsByCompanyId = async (req, res, next) => {
   try {
     const { companyId } = req.params;
-    const projects = await Project.find({ company_id: companyId }).populate("contractor_id", "name");
+    const projects = await Project.find({  companyId }).populate(
+      "contractor_id",
+      "name"
+    );
     res.status(200).json(projects);
   } catch (error) {
     next(error);
   }
 };
-
 export const updateProjectStatus = async (req, res, next) => {
   try {
     const { projectId } = req.params;
@@ -204,3 +209,4 @@ export const updateProjectStatus = async (req, res, next) => {
     next(error);
   }
 };
+

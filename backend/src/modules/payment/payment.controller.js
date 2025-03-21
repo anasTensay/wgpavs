@@ -15,7 +15,7 @@ const validatePaymentAmount = async (project_id, amount, paymentId = null) => {
 
 export const createHandler = async (req, res, next) => {
   try {
-    const { project_id, amount, payment_status, payment_date, contractor_id } = req.body;
+    const { companyId, project_id, amount, payment_status, payment_date, contractor_id } = req.body;
 
     // التحقق من أن المجموع لا يتجاوز 100%
     const isValid = await validatePaymentAmount(project_id, amount);
@@ -24,6 +24,7 @@ export const createHandler = async (req, res, next) => {
     }
 
     const newPayment = new Payment({
+      companyId,
       project_id,
       amount,
       payment_status,
@@ -72,6 +73,15 @@ export const deleteHandler = async (req, res, next) => {
   }
 };
 
+export const getComanyPayement = async (req, res, next) => {
+  try {
+    const { companyId } = req.params;
+    const payments = await Payment.find({ companyId }).populate("project_id", "name").populate("contractor_id", "name");
+    res.json(payments);
+  } catch (error) {
+    next(error);
+  }
+};
 export const getHandler = async (req, res, next) => {
   try {
     const payments = await Payment.find()

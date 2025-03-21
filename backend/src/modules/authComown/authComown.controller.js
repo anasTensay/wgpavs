@@ -63,9 +63,20 @@ export const loginHandler = async (req, res, next) => {
   }
 };
 
+
 export const getComowns = async (req, res, next) => {
   try {
     const comowns = await Comown.find();
+    res.status(200).json(comowns);
+  } catch (error) {
+    next(error);
+  }
+};
+export const getCompanyInfo = async (req, res, next) => {
+  const { companyId } = req.params;
+
+  try {
+    const comowns = await Comown.find({companyId});
     res.status(200).json(comowns);
   } catch (error) {
     next(error);

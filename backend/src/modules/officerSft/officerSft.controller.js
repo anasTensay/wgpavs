@@ -68,7 +68,14 @@ export const getHandler = async (req, res, next) => {
     next(error);
   }
 };
-
+export const getCompanyOfficer = async (req, res, next) => {
+  try {
+    const officers = await Officer.find();
+    res.json(officers);
+  } catch (error) {
+    next(error);
+  }
+};
 export const updateHandler = async (req, res, next) => {
   try {
     const updatedOfficer = await Officer.findByIdAndUpdate(

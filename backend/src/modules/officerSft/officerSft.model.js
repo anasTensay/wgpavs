@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const officerSchema = new mongoose.Schema(
   {
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comown",
+    },
     id: { type: String, required: true },
     name: {
       type: String,

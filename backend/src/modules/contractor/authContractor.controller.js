@@ -6,7 +6,11 @@ import Project from "../project/project.model.js";
 
 export const getProjects = async (req, res) => {
   try {
-    const projects = await Project.find().populate("contractor_id", "name"); // Populate contractor name
+    const projects = await Project.find().populate({
+      path: "contractor_id",
+      select: "name", // جلب اسم المقاول فقط
+    });
+    console.log(projects); // تحقق من البيانات
     res.status(200).json(projects);
   } catch (error) {
     res.status(500).json({ message: "Error fetching projects", error });
@@ -14,6 +18,7 @@ export const getProjects = async (req, res) => {
 };
 export const registerHandler = async (req, res, next) => {
   const {
+    companyId,
     id,
     name,
     phoneNumber,
@@ -24,9 +29,11 @@ export const registerHandler = async (req, res, next) => {
     amount,
     Iktva
   } = req.body;
+
   const hashedPassword = bcryptjs.hashSync(password, 10);
 
   const newContractor = new Contractor({
+    companyId,
     id,
     name,
     phoneNumber,
@@ -40,7 +47,7 @@ export const registerHandler = async (req, res, next) => {
 
   try {
     await newContractor.save();
-    res.json("login successFully");
+    res.json("Contractor registered successfully");
   } catch (error) {
     next(error);
   }
@@ -55,16 +62,13 @@ export const loginHandler = async (req, res, next) => {
       return next(errorHandler(404, "Account Contractor not found"));
     }
 
-    const validPassword = bcryptjs.compareSync(
-      password,
-      validContractor.password
-    );
+    const validPassword = bcryptjs.compareSync(password, validContractor.password);
     if (!validPassword) {
       return next(errorHandler(400, "password incorrect"));
     }
 
     const token = jwt.sign(
-      { id: validContractor._id, isContractor: validContractor.isContractor },
+      { id: validContractor._id, companyId: validContractor.companyId },
       process.env.JWT_SECRET
     );
 
@@ -86,11 +90,22 @@ export const loginHandler = async (req, res, next) => {
 export const getHandler = async (req, res, next) => {
   try {
     const contractors = await Contractor.find();
-    res.json(contractors);
+    res.status(200).json(contractors); // تأكد من إرجاع JSON
   } catch (error) {
     next(error);
   }
 };
+export const getCompanyContractor = async (req, res, next) => {
+  const { companyId } = req.params;
+
+  try {
+    const contractors = await Contractor.find({ companyId });
+    res.status(200).json(contractors); // تأكد من إرجاع JSON
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 export const updateHandler = async (req, res, next) => {
   try {

@@ -146,7 +146,7 @@ export const getContractorsWithWorkerCountsByCompany = async (req, res) => {
 // إنشاء عامل جديد
 export const createWorker = async (req, res, next) => {
   try {
-    const { id, name, contractor_id, contact_info, nationality, job_title } =
+    const { companyId, id, name, contractor_id, contact_info, nationality, job_title } =
       req.body;
 
     // Check if a worker with the same ID already exists
@@ -158,6 +158,7 @@ export const createWorker = async (req, res, next) => {
     }
 
     const newWorker = new Worker({
+      companyId,
       id,
       name,
       contractor_id,
@@ -225,6 +226,15 @@ export const getWorkers = async (req, res, next) => {
     next(error);
   }
 };
+export const getCompanyWorkers = async (req, res, next) => {
+  try {
+    const { companyId } = req.params;
+    const workers = await Worker.find({ companyId }).populate("contractor_id"); // إزالة project_id
+    res.status(200).json(workers);
+  } catch (error) {
+    next(error);
+  }
+};
 // جلب عامل بواسطة ID
 export const getWorkerById = async (req, res, next) => {
   try {
@@ -240,3 +250,4 @@ export const getWorkerById = async (req, res, next) => {
     next(error);
   }
 };
+

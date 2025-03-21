@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const workerSchema = new mongoose.Schema(
   {
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comown",
+    },
     id: { type: String, required: true, unique: true }, // Enforce uniqueness
     name: { type: String, required: true },
     contractor_id: {

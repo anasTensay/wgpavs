@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 
 const paymentSchema = new mongoose.Schema(
   {
+    companyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Comown",
+    },
     project_id: { type: mongoose.Schema.Types.ObjectId, ref: "Project", required: true },
     amount: { type: Number, required: true },
     payment_status: {

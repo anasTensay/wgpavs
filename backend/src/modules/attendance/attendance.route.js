@@ -6,6 +6,8 @@ import {
   getAttendance,
   getAttendanceById,
   getAllAttendanceRecords,
+  getCompanyAttendance,
+  getAllAttendanceRecordsCompany,
 } from "./attendance.controller.js";
 
 const router = express.Router();
@@ -26,7 +28,10 @@ router.post("/", createAttendance);
 router.put("/:id", updateAttendance);
 router.delete("/:id", deleteAttendance);
 router.get("/records", getAllAttendanceRecords);  // Add this new route
+router.get("/records/:companyId", getAllAttendanceRecordsCompany);  // Add this new route
 router.get("/", getAttendance);
+router.get("/:companyId", getCompanyAttendance);
 router.get("/:id", getAttendanceById);
+
 
 export default router;

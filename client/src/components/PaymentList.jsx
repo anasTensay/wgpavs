@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import AddPayment from "./AddPayment";
+import { useSelector } from "react-redux";
 
 const PaymentList = () => {
   const [payments, setPayments] = useState([]);
@@ -15,6 +16,7 @@ const PaymentList = () => {
   const [editContractorId, setEditContractorId] = useState("");
   const [projects, setProjects] = useState([]);
   const [contractors, setContractors] = useState([]);
+  const { currentUser } = useSelector((state) => state.user);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -26,7 +28,17 @@ const PaymentList = () => {
 
   const fetchPayments = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/payments`);
+      let url = `${apiUrl}/api/payments`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/payments/${currentUser._id}`;
+      }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
       const data = await res.json();
       if (res.ok) {
         setPayments(data);
@@ -38,7 +50,17 @@ const PaymentList = () => {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/projects`);
+      let url = `${apiUrl}/api/projects`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/projects/company/${currentUser._id}`;
+      }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
       const data = await res.json();
       if (res.ok) {
         setProjects(data);
@@ -50,8 +72,17 @@ const PaymentList = () => {
 
   const fetchContractors = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/contractors`);
-      const data = await res.json();
+      let url = `${apiUrl}/api/contractors`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/contractors/${currentUser._id}`;
+      }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      }); const data = await res.json();
       if (res.ok) {
         setContractors(data);
       }

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useSelector } from "react-redux";
 
 const AddOfficer = ({ onAdd }) => {
   const [id, setId] = useState("");
@@ -6,12 +7,15 @@ const AddOfficer = ({ onAdd }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { currentUser } = useSelector((state) => state.user);
+  const companyId = currentUser._id
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const officer = {
+        companyId: currentUser?.isComown ? currentUser._id : "",
         id,
         name,
         email,

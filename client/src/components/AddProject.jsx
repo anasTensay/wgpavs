@@ -38,9 +38,22 @@ const AddProject = ({ onAdd }) => {
 
   const fetchContractors = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/contractors`);
+      let url = `${apiUrl}/api/contractors`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/contractors/${currentUser._id}`;
+      }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
+
       const data = await res.json();
-      if (res.ok) setContractors(data);
+      if (res.ok) {
+        setContractors(data)
+      }
     } catch (error) {
       console.error("Error fetching contractors:", error);
     }
@@ -64,18 +77,7 @@ const AddProject = ({ onAdd }) => {
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
-          safetyType: currentUser.isOfficer ? formData.safetyType : undefined,
-          occurredOn: currentUser.isOfficer ? formData.occurredOn : undefined,
-          description: currentUser.isOfficer ? formData.description : undefined,
-          statusOfs: currentUser.isOfficer ? formData.statusOfs : undefined,
-          schstartDate: currentUser.isContractor
-            ? formData.schstartDate
-            : undefined,
-          schendDate: currentUser.isContractor
-            ? formData.schendDate
-            : undefined,
-          remarks: currentUser.isContractor ? formData.remarks : undefined,
+          ...formData, companyId: currentUser?.isComown ? currentUser._id : ""
         }),
       });
       const data = await res.json();

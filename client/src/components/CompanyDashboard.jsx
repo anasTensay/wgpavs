@@ -8,6 +8,7 @@ import { Chart, registerables } from "chart.js";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import SafetyReport from "./SafetyReport";
 import AttendanceReport from "./AttendanceReport";
+import { useSelector } from "react-redux";
 
 Chart.register(...registerables);
 
@@ -19,13 +20,14 @@ const CompanyDashboard = () => {
   const [attendanceReports, setAttendanceReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
+  const { currentUser } = useSelector((state) => state.user);
+  const companyId = currentUser?._id
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [contractorsRes, projectsRes, reportsRes] = await Promise.all([
-          fetch(`${apiUrl}/api/contractors`).then((res) => res.json()),
-          fetch(`${apiUrl}/api/projects`).then((res) => res.json()),
+          fetch(`${apiUrl}/api/contractors/${companyId}`).then((res) => res.json()),
+          fetch(`${apiUrl}/api/projects/company/${companyId}`).then((res) => res.json()),
           fetch(`${apiUrl}/api/attendance`).then((res) => res.json()),
         ]);
 
@@ -41,13 +43,13 @@ const CompanyDashboard = () => {
     };
 
     fetchData();
-  }, [apiUrl]);
+  }, [apiUrl, companyId]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const contractorsRes = await fetch(
-          `${apiUrl}/api/projects/project-counts`
+          `${apiUrl}/api/projects/project-counts?companyId=${companyId}`
         ).then((res) => res.json());
 
         setContractorsProject(contractorsRes);
@@ -60,7 +62,7 @@ const CompanyDashboard = () => {
     };
 
     fetchData();
-  }, [apiUrl]);
+  }, [apiUrl, companyId]);
 
   const chartData = {
     labels: attendanceReports?.map((report) => report.project_name),
@@ -88,6 +90,47 @@ const CompanyDashboard = () => {
       <h1 className="text-3xl font-bold mb-6 text-center">
         Company Owner Dashboard
       </h1>
+
+      {/* Project Management */}
+      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 className="text-xl font-semibold mb-4">Project Management</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="border p-3 text-left">Company</th>
+                <th className="border p-3 text-left">Project ID</th>
+                <th className="border p-3 text-left">Project Name</th>
+                <th className="border p-3 text-left">Location</th>
+                <th className="border p-3 text-left">End User</th>
+
+                <th className="border p-3 text-left">Project Status</th>
+                <th className="border p-3 text-left">Start Date</th>
+                <th className="border p-3 text-left">End Date</th>
+                <th className="border p-3 text-left">Will Work Next Week</th>
+                <th className="border p-3 text-left">Upcoming Week Schedule</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects?.map((project) => (
+                <tr key={project._id} className="border-b hover:bg-gray-50">
+                  <td className="border p-3">{currentUser.name || "N/A"}</td>
+                  <td className="border p-3">{project.project_number}</td>
+                  <td className="border p-3">{project.name}</td>
+                  <td className="border p-3">{project.location}</td>
+                  <td className="border p-3">{project.contractor_id?.name || "N/A"}</td>
+                  <td className="border p-3">{project.status}</td>
+                  <td className="border p-3">{new Date(project.start_date).toLocaleDateString()}</td>
+                  <td className="border p-3">{new Date(project.end_date).toLocaleDateString()}</td>
+                  <td className="border p-3">{project.contractorWillWorkNextWeek ? "Yes" : "No"}</td>
+                  <td className="border p-3">{project.upcomingWeekSchedule || "N/A"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Contractor Management */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 className="text-xl font-semibold mb-4">Contractor Management</h2>
@@ -195,11 +238,9 @@ const CompanyDashboard = () => {
           </table>
         </div>
       </div>
-
       <SafetyReport />
       {/* Attendance Reports */}
       <AttendanceReport apiUrl={apiUrl} />
-
     </div>
   );
 };

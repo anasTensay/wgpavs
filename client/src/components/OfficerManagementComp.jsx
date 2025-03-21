@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import AddOfficer from "./AddOfficer";
+import { useSelector } from "react-redux";
 
 const OfficerManagementComp = () => {
   const [officers, setOfficers] = useState([]);
@@ -13,6 +14,8 @@ const OfficerManagementComp = () => {
   const [editEmail, setEditEmail] = useState("");
   const [editPhoneNumber, setEditPhoneNumber] = useState("");
   const [editPassword, setEditPassword] = useState("");
+  const { currentUser } = useSelector((state) => state.user);
+  const companyId = currentUser._id
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
@@ -21,8 +24,18 @@ const OfficerManagementComp = () => {
 
   const fetchOfficers = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/officer`);
-      const data = await res.json();
+      let url = `${apiUrl}/api/officer`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/officer/${companyId}`;
+      }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await res.json()
       if (res.ok) {
         setOfficers(data);
       }

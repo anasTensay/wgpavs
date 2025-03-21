@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
@@ -12,21 +12,72 @@ const ReportsPage = () => {
   const [filters, setFilters] = useState({
     startDate: "",
     endDate: "",
-    projectId: "",
+    companyId: "",
     contractorId: "",
+    location: "",
+    assignedLocation: "",
+    status: ""
   });
   const [loading, setLoading] = useState(false);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3005";
 
-  // Fetch data based on filters
+  const statuses = ["All", "Active", "Expired", "Completed"];
+  const locations = [
+    "All",
+    "NGL",
+    "Flare-Area",
+    "SRU-HU",
+    "FG",
+    "UT",
+    "Cogen",
+    "Off-Site",
+    "Sulfur-Loading",
+    "Handlling"
+  ];
+  const assignedLocations = [
+    "All",
+    "NGL",
+    "Degital",
+    "GT",
+    "SRU",
+    "FG",
+    "UT",
+    "Elect",
+    "PSCT",
+    "CU",
+    "T&l",
+    "Multi-Craft",
+    "PZV",
+    "HVAC"
+  ];
+
+  // Fetch projects based on filters
   const fetchData = async () => {
     setLoading(true);
     try {
-      const url = new URL(`${apiUrl}/api/contractors/projects`);
-      Object.keys(filters).forEach((key) => {
-        if (filters[key]) {
-          url.searchParams.append(key, filters[key]);
-        }
+      let url = new URL(`${apiUrl}/api/projects`);
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = new URL(`${apiUrl}/api/projects/company/${currentUser._id}`);
+      }
+
+      // Apply contractorId filter if present
+      if (filters.contractorId) {
+        url = new URL(`${apiUrl}/api/projects/contractor/${filters.contractorId}`);
+      }
+
+      // Add other filters as query parameters
+      const queryParams = {};
+      if (filters.startDate) queryParams.start_date_gte = filters.startDate;
+      if (filters.endDate) queryParams.end_date_lte = filters.endDate;
+      if (filters.status && filters.status !== "All") queryParams.status = filters.status;
+      if (filters.location && filters.location !== "All") queryParams.location = filters.location;
+      if (filters.assignedLocation && filters.assignedLocation !== "All") queryParams.assigned_location = filters.assignedLocation;
+
+      // Add query parameters to URL
+      Object.keys(queryParams).forEach(key => {
+        url.searchParams.append(key, queryParams[key]);
       });
 
       const response = await fetch(url.toString(), {
@@ -60,21 +111,55 @@ const ReportsPage = () => {
 
   // Export to Excel
   const exportToExcel = () => {
-    const ws = XLSX.utils.json_to_sheet(data);
+    const formattedData = data.map(project => ({
+      "Project Name": project.name,
+      "Project Number": project.project_number,
+      "Start Date": formatDate(project.start_date),
+      "End Date": formatDate(project.end_date),
+      "Status": project.status,
+      "Location": project.location,
+      "Assigned Location": project.assigned_location,
+      "Contractor": project.contractor_id?.name || "N/A",
+      "Notes": project.notes || "",
+      "YTD FAI": project.ytdFAI || 0,
+      "YTD Observation": project.ytdObservation || 0,
+      "YTD Incident": project.ytdIncident || 0,
+      "Total Not Closed": project.totalNotClosed || 0,
+      "Created At": formatDate(project.createdAt)
+    }));
+    
+    const ws = XLSX.utils.json_to_sheet(formattedData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Report");
-    XLSX.writeFile(wb, "report.xlsx");
+    XLSX.utils.book_append_sheet(wb, ws, "Projects Report");
+    XLSX.writeFile(wb, "projects-report.xlsx");
   };
 
   // Export to CSV
   const exportToCSV = () => {
+    const formattedData = data.map(project => ({
+      "Project Name": project.name,
+      "Project Number": project.project_number,
+      "Start Date": formatDate(project.start_date),
+      "End Date": formatDate(project.end_date),
+      "Status": project.status,
+      "Location": project.location,
+      "Assigned Location": project.assigned_location,
+      "Contractor": project.contractor_id?.name || "N/A",
+      "Notes": project.notes || "",
+      "YTD FAI": project.ytdFAI || 0,
+      "YTD Observation": project.ytdObservation || 0,
+      "YTD Incident": project.ytdIncident || 0,
+      "Total Not Closed": project.totalNotClosed || 0,
+      "Created At": formatDate(project.createdAt)
+    }));
+    
     const parser = new Parser();
-    const csv = parser.parse(data);
+    const csv = parser.parse(formattedData);
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.setAttribute("download", "report.csv");
+    link.setAttribute("download", "projects-report.csv");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -82,11 +167,21 @@ const ReportsPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, [filters]);
+  }, []);
+
+  const formatDate = (dateString) => {
+    try {
+      if (!dateString) return "N/A";
+      if (dateString.includes('+')) return "Invalid date";
+      return new Date(dateString).toLocaleDateString();
+    } catch (error) {
+      return "Invalid date";
+    }
+  };
 
   return (
     <div className="container mx-auto p-6">
-      <h2 className="text-3xl font-bold mb-8 text-center">Reports</h2>
+      <h2 className="text-3xl font-bold mb-8 text-center">Projects Reports</h2>
 
       {/* Filters */}
       <div className="bg-white shadow-lg rounded-lg p-6 mb-8">
@@ -113,11 +208,11 @@ const ReportsPage = () => {
             />
           </div>
           <div>
-            <label className="block text-gray-700">Project ID</label>
+            <label className="block text-gray-700">Company ID</label>
             <input
               type="text"
-              name="projectId"
-              value={filters.projectId}
+              name="companyId"
+              value={filters.companyId}
               onChange={handleFilterChange}
               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
             />
@@ -132,6 +227,51 @@ const ReportsPage = () => {
               className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
             />
           </div>
+          <div>
+            <label className="block text-gray-700">Status</label>
+            <select
+              name="status"
+              value={filters.status}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+            >
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-700">Location</label>
+            <select
+              name="location"
+              value={filters.location}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+            >
+              {locations.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-gray-700">Assigned Location</label>
+            <select
+              name="assignedLocation"
+              value={filters.assignedLocation}
+              onChange={handleFilterChange}
+              className="w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+            >
+              {assignedLocations.map((location) => (
+                <option key={location} value={location}>
+                  {location}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <button
           onClick={fetchData}
@@ -145,7 +285,7 @@ const ReportsPage = () => {
       {/* Data Table */}
       <div className="bg-white shadow-lg rounded-lg p-6 overflow-x-auto">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-semibold">Report Data</h3>
+          <h3 className="text-xl font-semibold">Projects Data</h3>
           <div className="space-x-2">
             <button
               onClick={exportToExcel}
@@ -164,42 +304,62 @@ const ReportsPage = () => {
           </div>
         </div>
         {loading ? (
-          <p>Loading...</p>
+          <p className="text-center py-4">Loading...</p>
         ) : (
           <table className="w-full border-collapse border border-gray-200">
             <thead className="bg-gray-100">
               <tr>
-                <th className="border p-3 text-left">Name</th>
+                <th className="border p-3 text-left">Project Name</th>
+                <th className="border p-3 text-left">Project Number</th>
                 <th className="border p-3 text-left">Start Date</th>
                 <th className="border p-3 text-left">End Date</th>
                 <th className="border p-3 text-left">Status</th>
                 <th className="border p-3 text-left">Location</th>
-                <th className="border p-3 text-left">End User</th>
-                <th className="border p-3 text-left">Company ID</th>
-                <th className="border p-3 text-left">Contractor Name</th>
+                <th className="border p-3 text-left">Assigned Location</th>
+                <th className="border p-3 text-left">Contractor</th>
+                <th className="border p-3 text-left">FAI Stats</th>
                 <th className="border p-3 text-left">Notes</th>
               </tr>
             </thead>
             <tbody>
-              {data.map((project) => (
-                <tr key={project._id} className="hover:bg-gray-50">
-                  <td className="border p-3">{project.name}</td>
-                  <td className="border p-3">
-                    {new Date(project.start_date).toLocaleDateString()}
+              {data.length > 0 ? (
+                data.map((project) => (
+                  <tr key={project._id} className="hover:bg-gray-50">
+                    <td className="border p-3">{project.name}</td>
+                    <td className="border p-3">{project.project_number}</td>
+                    <td className="border p-3">{formatDate(project.start_date)}</td>
+                    <td className="border p-3">{formatDate(project.end_date)}</td>
+                    <td className="border p-3">
+                      <span 
+                        className={`px-2 py-1 rounded-full text-xs ${
+                          project.status === 'Active' ? 'bg-green-100 text-green-800' : 
+                          project.status === 'Expired' ? 'bg-red-100 text-red-800' : 
+                          'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        {project.status}
+                      </span>
+                    </td>
+                    <td className="border p-3">{project.location}</td>
+                    <td className="border p-3">{project.assigned_location}</td>
+                    <td className="border p-3">{project.contractor_id?.name || "N/A"}</td>
+                    <td className="border p-3">
+                      <div className="text-xs">
+                        <div>YTD FAI: {project.ytdFAI || 0}</div>
+                        <div>YTD Obsv: {project.ytdObservation || 0}</div>
+                        <div>YTD Incid: {project.ytdIncident || 0}</div>
+                      </div>
+                    </td>
+                    <td className="border p-3">{project.notes || "-"}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="10" className="border p-3 text-center">
+                    No projects available
                   </td>
-                  <td className="border p-3">
-                    {new Date(project.end_date).toLocaleDateString()}
-                  </td>
-                  <td className="border p-3">{project.status}</td>
-                  <td className="border p-3">{project.location}</td>
-                  <td className="border p-3">{project.assigned_location}</td>
-                  <td className="border p-3">{project.company_id}</td>
-                  <td className="border p-3">
-                    {project.contractor_id?.name || "N/A"}
-                  </td>
-                  <td className="border p-3">{project.notes}</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         )}

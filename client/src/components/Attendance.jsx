@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import AttendanceTable from "./AttendanceTable";
+import { useSelector } from "react-redux";
 
 const Attendance = () => {
   const [workers, setWorkers] = useState([]); // Workers list
@@ -20,6 +21,8 @@ const Attendance = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { currentUser } = useSelector((state) => state.user);
+  console.log(attendanceRecords)
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   // Function to fetch data
@@ -38,21 +41,63 @@ const Attendance = () => {
 
   // Fetch attendance records
   const fetchAttendance = async () => {
-    // Use the new endpoint for detailed records instead of the summary
-    const data = await fetchData("/api/attendance/records");
-    if (data) setAttendanceRecords(data);
+    let url = `${apiUrl}/api/attendance/records`;
+
+    // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+    if (currentUser.isComown) {
+      url = `${apiUrl}/api/attendance/records/${currentUser._id}`;
+    }
+
+    const res = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setAttendanceRecords(data);
+    }
+
   };
 
   // Fetch workers list
   const fetchWorkers = async () => {
-    const data = await fetchData("/api/workers");
-    if (data) setWorkers(data);
+    let url = `${apiUrl}/api/workers`;
+
+    // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+    if (currentUser.isComown) {
+      url = `${apiUrl}/api/workers/${currentUser._id}`;
+    }
+
+    const res = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setWorkers(data);
+    }
   };
 
   // Fetch projects list
   const fetchProjects = async () => {
-    const data = await fetchData("/api/projects");
-    if (data) setProjects(data);
+    let url = `${apiUrl}/api/projects`;
+
+    // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+    if (currentUser.isComown) {
+      url = `${apiUrl}/api/projects/company/${currentUser._id}`;
+    }
+
+    const res = await fetch(url, {
+      method: "GET",
+      credentials: "include",
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setProjects(data);
+    }
   };
 
   useEffect(() => {
@@ -70,7 +115,9 @@ const Attendance = () => {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData, companyId: currentUser?.isComown ? currentUser._id : ""
+        }),
       });
       const data = await res.json();
       if (res.ok) {

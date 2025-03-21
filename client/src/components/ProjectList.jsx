@@ -41,24 +41,38 @@ const ProjectList = () => {
   }, []);
 
   const fetchProjects = async () => {
-    setIsLoading(true);
     try {
-      const res = await fetch(`${apiUrl}/api/projects`);
-      if (!res.ok) {
-        const errorData = await res.text(); // اقرأ الاستجابة كنص لفهم الخطأ
-        throw new Error(`Server error: ${res.status} - ${errorData}`);
+      let url = `${apiUrl}/api/projects`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/projects/company/${currentUser._id}`;
       }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
       const data = await res.json();
       setProjects(data);
     } catch (error) {
       console.error("Error fetching projects:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
+
   const fetchContractors = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/contractors`);
+      let url = `${apiUrl}/api/contractors`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/contractors/${currentUser._id}`;
+      }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
       const data = await res.json();
       if (res.ok) setContractors(data);
     } catch (error) {

@@ -172,14 +172,14 @@ const Sidebar = ({ showNav, onClose }) => {
             <FaPlus />
           </Link>
         )}
-        {(isAdmin || isContractor) && (
+        {(isAdmin || isOwnerAd || isContractor) && (
           <Link
             href="/officerSft"
             className="flex items-center justify-between gap-5 p-2 rounded hover:bg-indigo-700 transition-colors duration-200"
           >
             <div className="flex">
               <FaHardHat className="mr-3 text-lg" />
-              <span>Officer Safty</span>
+              <span>Safety Officer</span>
             </div>
             <FaPlus />
           </Link>

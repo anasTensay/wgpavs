@@ -7,27 +7,43 @@ const AddPayment = ({ onAdd }) => {
   const [contractors, setContractors] = useState([]);
   const [paymentStatus, setPaymentStatus] = useState("Unpaid");
   const [paymentDate, setPaymentDate] = useState("");
+  const [contractorId, setContractorId] = useState("");
   const [projectId, setProjectId] = useState("");
   const [remarks, setRemarks] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
   const { currentUser } = useSelector((state) => state.user);
 
   // Automatically set contractor_id if the user is a contractor
-  const contractorId = currentUser?.isContractor ? currentUser._id : "";
+  const contractor_Id = currentUser?.isContractor ? currentUser._id : "";
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     if (projectId) {
-      fetch(`${apiUrl}/api/payments?project_id=${projectId}`)
-        .then((res) => res.json())
-        .then((data) => {
-          const total = data.reduce((sum, payment) => sum + payment.amount, 0);
-          setTotalAmount(total);
-        })
-        .catch((error) => {
+      const fetchContractors = async () => {
+        try {
+
+          let url = `${apiUrl}/api/payments?project_id=${projectId}`;
+
+          // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+          if (currentUser.isComown) {
+            url = `${apiUrl}/api/payments/${currentUser._id}?project_id=${projectId}`;
+          }
+
+          const res = await fetch(url, {
+            method: "GET",
+            credentials: "include",
+          });
+          const data = await res.json();
+          if (res.ok) {
+            const total = data.reduce((sum, payment) => sum + payment.amount, 0);
+            setTotalAmount(total);
+          }
+        } catch (error) {
           console.error("Error fetching payments:", error);
-        });
+        };
+      }
+      fetchContractors()
     }
   }, [projectId]);
 
@@ -38,7 +54,17 @@ const AddPayment = ({ onAdd }) => {
 
   const fetchContractors = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/contractors`);
+      let url = `${apiUrl}/api/contractors`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/contractors/${currentUser._id}`;
+      }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
       const data = await res.json();
       if (res.ok) {
         setContractors(Array.isArray(data) ? data : [data]);
@@ -53,7 +79,18 @@ const AddPayment = ({ onAdd }) => {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/projects`);
+      let url = `${apiUrl}/api/projects`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/projects/company/${currentUser._id}`;
+      }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
+
       const data = await res.json();
       if (res.ok) {
         setProjects(Array.isArray(data) ? data : [data]);
@@ -79,7 +116,7 @@ const AddPayment = ({ onAdd }) => {
 
     // التحقق من أن المجموع لا يتجاوز 100%
     try {
-      const res = await fetch(`${apiUrl}/api/payments?project_id=${projectId}`);
+      const res = await fetch(`${apiUrl}/api/payments/${currentUser._id}?project_id=${projectId}`);
       const data = await res.json();
       const totalAmount = data.reduce((sum, payment) => sum + payment.amount, 0);
       if (totalAmount + amount > 100) {
@@ -97,11 +134,12 @@ const AddPayment = ({ onAdd }) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          companyId: currentUser?.isComown ? currentUser._id : "",
           amount: parseFloat(amount),
           payment_status: paymentStatus,
           payment_date: paymentDate,
           project_id: projectId,
-          contractor_id: contractorId,
+          contractor_id: currentUser?.isContractor ? contractor_Id : contractorId, // ✅ الحل الصحيح
           remarks,
         }),
       });

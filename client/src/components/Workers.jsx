@@ -29,7 +29,18 @@ const Workers = () => {
 
   const fetchWorkers = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/workers`);
+      let url = `${apiUrl}/api/workers`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/workers/${currentUser._id}`;
+      }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
+
       const data = await res.json();
       if (res.ok) {
         setWorkers(data);
@@ -41,7 +52,18 @@ const Workers = () => {
 
   const fetchContractors = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/contractors`);
+      let url = `${apiUrl}/api/contractors`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/contractors/${currentUser._id}`;
+      }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
+
       const data = await res.json();
       if (res.ok) {
         setContractors(data);
@@ -71,7 +93,9 @@ const Workers = () => {
         method,
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          formData, companyId: currentUser?.isComown ? currentUser._id : ""
+        }),
       });
 
       if (res.ok) {
@@ -79,7 +103,7 @@ const Workers = () => {
         setFormData({
           id: "",
           name: "",
-          contractor_id: "",
+          contractor_id: contractor_id,
           contact_info: { email: "", phone: "" },
           nationality: "Saudi",
           job_title: "",
@@ -107,7 +131,14 @@ const Workers = () => {
   };
 
   const handleEdit = (worker) => {
-    setFormData(worker);
+    setFormData({
+      id: worker.id,
+      name: worker.name,
+      contractor_id: worker.contractor_id,
+      contact_info: worker.contact_info,
+      nationality: worker.nationality,
+      job_title: worker.job_title,
+    });
     setEditMode(true);
     setSelectedWorker(worker);
     setIdError(""); // Clear ID error when editing
@@ -243,7 +274,7 @@ const Workers = () => {
               <th className="border p-3 text-left">Email</th>
               <th className="border p-3 text-left">Phone</th>
               <th className="border p-3 text-left">Nationality</th>
-
+              <th className="border p-3 text-left">Job Title</th>
               <th className="border p-3 text-left">Actions</th>
             </tr>
           </thead>
@@ -255,15 +286,14 @@ const Workers = () => {
                 <td className="border p-3">
                   {worker.contractor_id ? worker.contractor_id.name : "N/A"}
                 </td>
-
                 <td className="border p-3">
                   {worker.contact_info?.email || "N/A"}
                 </td>
                 <td className="border p-3">
                   {worker.contact_info?.phone || "N/A"}
                 </td>
-                <td className="border p-3">{worker?.nationality || "N/A"}</td>
-
+                <td className="border p-3">{worker.nationality || "N/A"}</td>
+                <td className="border p-3">{worker.job_title || "N/A"}</td>
                 <td className="border p-3">
                   <div className="space-x-2 flex">
                     <button

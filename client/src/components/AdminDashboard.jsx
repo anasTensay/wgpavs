@@ -24,6 +24,8 @@ const AdminDashboard = () => {
           fetch(`${apiUrl}/api/projects`).then((res) => res.json()),
         ]);
 
+        console.log("Projects Response:", projectsRes); // Log the response
+
         setComowns(comownsRes);
         setProjects(projectsRes);
       } catch (err) {
@@ -39,26 +41,25 @@ const AdminDashboard = () => {
 
   // إعداد بيانات التقرير
   const chartData = {
-    labels: projects?.map((project) => project.name), // أسماء المشاريع
+    labels: projects?.map((project) => project.name) || [], // Fallback to empty array
     datasets: [
       {
         label: "YTD FAI",
-        data: projects?.map((project) => project.ytdFAI || 0),
+        data: projects?.map((project) => project.ytdFAI || 0) || [], // Fallback to empty array
         backgroundColor: "rgba(75, 192, 192, 0.6)",
       },
       {
         label: "YTD Observation",
-        data: projects?.map((project) => project.ytdObservation || 0),
+        data: projects?.map((project) => project.ytdObservation || 0) || [], // Fallback to empty array
         backgroundColor: "rgba(153, 102, 255, 0.6)",
       },
       {
         label: "YTD Incident",
-        data: projects?.map((project) => project.ytdIncident || 0),
+        data: projects?.map((project) => project.ytdIncident || 0) || [], // Fallback to empty array
         backgroundColor: "rgba(255, 159, 64, 0.6)",
       },
     ],
   };
-
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -112,6 +113,8 @@ const AdminDashboard = () => {
                 <th className="p-3 text-left">Project Name</th>
                 <th className="p-3 text-left">Location</th>
                 <th className="p-3 text-left">Status</th>
+                <th className="p-3 text-left">Project ID</th>
+                <th className="p-3 text-left">Contractor ID</th>
                 <th className="p-3 text-left">Actions</th>
               </tr>
             </thead>
@@ -121,6 +124,8 @@ const AdminDashboard = () => {
                   <td className="p-3">{project.name}</td>
                   <td className="p-3">{project.location}</td>
                   <td className="p-3">{project.status}</td>
+                  <td className="p-3">{project._id}</td>
+                  <td className="p-3">{project.contractor_id}</td>
                   <td className="p-3">
                     <button className="text-blue-500 hover:text-blue-700 mr-2">
                       <FaEdit />
@@ -135,6 +140,8 @@ const AdminDashboard = () => {
           </table>
         </div>
       </div>
+
+      {/* Safety Report */}
       <div className="bg-white p-6 rounded-lg shadow-md mb-6">
         <h2 className="text-xl font-semibold mb-4">Safety Report</h2>
         <div className="overflow-x-auto">
@@ -154,6 +161,31 @@ const AdminDashboard = () => {
                   <td className="p-3">{project.ytdFAI || 0}</td>
                   <td className="p-3">{project.ytdObservation || 0}</td>
                   <td className="p-3">{project.ytdIncident || 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Weekly Schedule Report */}
+      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
+        <h2 className="text-xl font-semibold mb-4">Weekly Schedule Report</h2>
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-200">
+                <th className="p-3 text-left">Project Name</th>
+                <th className="p-3 text-left">Start Date</th>
+                <th className="p-3 text-left">End Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects?.map((project) => (
+                <tr key={project._id} className="border-b hover:bg-gray-50">
+                  <td className="p-3">{project.name}</td>
+                  <td className="p-3">{new Date(project.start_date).toLocaleDateString()}</td>
+                  <td className="p-3">{new Date(project.end_date).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>

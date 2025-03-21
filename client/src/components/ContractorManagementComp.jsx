@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import AddContractor from "./AddContractor";
+import { useSelector } from "react-redux";
 
 const ContractorManagementComp = () => {
   const [contractors, setContractors] = useState([]);
@@ -16,18 +17,29 @@ const ContractorManagementComp = () => {
   const [editAmount, setEditAmount] = useState("");
   const [editIktva, setEditIktva] = useState("");
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const { currentUser } = useSelector((state) => state.user);
+  const companyId = currentUser._id
 
   useEffect(() => {
-    fetchContractors();
-  }, []);
-
+    fetchContractors()
+  }, [companyId])
   const fetchContractors = async () => {
     try {
-      const res = await fetch(`${apiUrl}/api/contractors`);
+      let url = `${apiUrl}/api/contractors`;
+
+      // إذا كان المستخدم من نوع "شركة"، نضيف companyId إلى الـ URL
+      if (currentUser.isComown) {
+        url = `${apiUrl}/api/contractors/${companyId}`;
+      }
+
+      const res = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
+
       const data = await res.json();
-      console.log(data); // تحقق من البيانات هنا
       if (res.ok) {
-        setContractors(Array.isArray(data) ? data : [data]);
+        setContractors(data);
       }
     } catch (error) {
       console.error("An error occurred while fetching contractor data:", error);

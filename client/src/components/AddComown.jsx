@@ -105,7 +105,7 @@ const AddComown = () => {
                 type="submit"
                 className="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 transition"
             >
-                Add
+                Add Company
             </button>
         </form>
     );

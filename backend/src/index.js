@@ -29,7 +29,12 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
+app.get('/', (req, res) => {
+  res.send({
+    activeStatus: true,
+    error: false,
+  })
+})
 // Routes
 app.use("/api/authAdmin", authAdminRouter);
 app.use("/api/authComown", authComownRouter);

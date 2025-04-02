@@ -32,7 +32,7 @@ export const loginHandler = async (req, res, next) => {
 
     const validPassword = bcryptjs.compareSync(password, validAdmin.password);
     if (!validPassword) {
-      return next(errorHandler(400, "password incorrect"));
+      return next(errorHandler(400, "Password Incorrect"));
     }
 
     const token = jwt.sign(

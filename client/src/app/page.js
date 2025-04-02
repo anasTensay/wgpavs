@@ -9,7 +9,7 @@ export default function Home() {
           <Link href="/adminLogin">Login Admin</Link>
         </li>
         <li className="py-5 px-5 bg-slate-300 text-slate-600 rounded-xl">
-          <Link href="/adminOwnerLogin">Login Company owner</Link>
+          <Link href="/adminOwnerLogin">Login Company Owner</Link>
         </li>
         <li className="py-5 px-5 bg-slate-300 text-slate-600 rounded-xl">
           <Link href="/adminContractorLogin">Login Contractor</Link>
